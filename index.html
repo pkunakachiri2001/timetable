@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chronosync - AI Student Organizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary: #2563eb;
+      --secondary: #7c3aed;
+      --accent: #f59e0b;
+      --background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+      --text: #1e293b;
+      --glass-bg: rgba(255, 255, 255, 0.9);
+      --glass-border: rgba(149, 117, 205, 0.15);
+      --shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.1);
+      --gradient: linear-gradient(45deg, var(--primary), var(--secondary));
+      --toast-bg: rgba(0, 0, 0, 0.75);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeIn 1s ease-out;
+    }
+
+    .header h1 {
+      font-size: clamp(2.5rem, 5vw, 3.5rem);
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      color: #64748b;
+      max-width: 60ch;
+      margin: 0 auto;
+    }
+
+    .time-machine {
+      display: grid;
+      grid-template-columns: minmax(250px, 300px) 1fr;
+      gap: 1.5rem;
+      background: var(--glass-bg);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      animation: slideIn 1s ease-out;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .activity-card {
+      background: var(--glass-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .activity-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .activity-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background: var(--gradient);
+    }
+
+    .progress-ring {
+      width: 100px;
+      height: 100px;
+      transform: rotate(-90deg);
+      margin: 1.5rem auto;
+      position: relative;
+    }
+
+    .progress-ring circle {
+      fill: none;
+      stroke-width: 6;
+      stroke-linecap: round;
+    }
+
+    .progress-ring .background {
+      stroke: rgba(255, 255, 255, 0.3);
+    }
+
+    .progress-ring .progress {
+      stroke: var(--secondary);
+      transition: stroke-dashoffset 0.5s;
+    }
+
+    .progress-ring .progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .schedule-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .day-selector-container {
+      margin-bottom: 1rem;
+      animation: fadeIn 1s ease-out;
+    }
+
+    #day-selector {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      background: var(--glass-bg);
+      color: var(--primary);
+      cursor: pointer;
+      transition: transform 0.3s;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+    }
+
+    #day-selector:hover {
+      transform: scale(1.05);
+    }
+
+    /* Morning Plan Section */
+    .morning-plan {
+      margin-top: 1rem;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, rgba(100, 149, 237, 0.5), rgba(144, 238, 144, 0.5));
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      animation: fadeIn 1s ease-out;
+    }
+
+    .morning-plan h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+
+    .morning-plan ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .morning-plan li {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-bottom: 1px dashed var(--secondary);
+    }
+
+    .schedule-view {
+      position: relative;
+      padding: 1.5rem;
+      background: var(--glass-bg);
+      border-radius: 15px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      overflow-y: auto;
+      max-height: 60vh;
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary) transparent;
+    }
+
+    .schedule-view::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .schedule-view::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 3px;
+    }
+
+    .time-slot {
+      padding: 1.25rem;
+      margin: 0.5rem 0;
+      border-left: 4px solid var(--secondary);
+      background: rgba(234, 234, 234, 0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      animation: slideIn 0.5s ease-out;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .time-slot:hover {
+      transform: translateX(4px);
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .time-indicator {
+      font-weight: 500;
+      color: var(--primary);
+      min-width: 100px;
+    }
+
+    .study-guide {
+      margin-top: 1rem;
+      padding: 1.5rem;
+      background: var(--glass-bg);
+      border-left: 4px solid var(--secondary);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      color: var(--primary);
+      animation: fadeIn 1s ease-out;
+    }
+
+    .evening-plan {
+      margin-top: 1rem;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, rgba(255, 107, 129, 0.5), rgba(255, 201, 18, 0.5));
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      animation: fadeIn 1s ease-out;
+    }
+
+    .evening-plan h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .evening-plan h3::before {
+      content: "🌙";
+      font-size: 1.1em;
+    }
+
+    .evening-plan ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .evening-plan li {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-bottom: 1px dashed var(--secondary);
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .evening-plan li::after {
+      content: "→";
+      opacity: 0.4;
+      justify-self: end;
+    }
+
+    .manual-tasks {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .manual-tasks h3 {
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+
+    .manual-tasks ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .manual-tasks li {
+      padding: 0.5rem;
+      border-bottom: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    /* Display Priority and Deadline if available */
+    .manual-tasks li span {
+      font-size: 0.85em;
+      color: #555;
+    }
+
+    .performance-summary {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      text-align: left;
+    }
+
+    .floating-add {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 56px;
+      height: 56px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(99, 102, 241, 0.25);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .floating-add:hover {
+      transform: scale(1.15) rotate(180deg);
+      box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+    }
+
+    #toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+
+    .toast {
+      background: var(--toast-bg);
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9em;
+      opacity: 0;
+      animation: fadeInToast 0.5s forwards;
+    }
+
+    @keyframes fadeInToast {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeOutToast {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes hueShift {
+      from {
+        filter: hue-rotate(0deg);
+      }
+      to {
+        filter: hue-rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: rotate(-90deg) scale(1);
+      }
+      50% {
+        transform: rotate(-90deg) scale(1.05);
+      }
+      100% {
+        transform: rotate(-90deg) scale(1);
+      }
+    }
+
+    .completed-task {
+      animation: pulse 0.3s ease;
+      opacity: 0.6;
+      text-decoration: line-through;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+        --text: #f8fafc;
+        --glass-bg: rgba(30, 41, 59, 0.8);
+        --glass-border: rgba(148, 163, 184, 0.15);
+      }
+
+      .activity-card {
+        background: var(--glass-bg);
+      }
+
+      .toast {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .time-machine {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+      }
+
+      .header h1 {
+        font-size: 2.25rem;
+      }
+
+      .time-slot {
+        flex-direction: column;
+        align-items: start;
+        gap: 0.5rem;
+      }
+
+      .time-slot .time-indicator {
+        font-size: 0.9em;
+      }
+    }
+ 
+    /* (CSS remains the same as in your original code) */
+  </style>
+</head>
+<body>
+  <!-- Wave Background -->
+  <div class="wave-background">
+    <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="var(--secondary)" opacity="0.15"></path>
+    </svg>
+  </div>
+  <div class="container">
+    <div class="header">
+      <h1>P.Kunaka</h1>
+      <p>Panashe's Intelligent Study Partner 🤖📚</p>
+    </div>
+    <div class="time-machine">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="activity-card">
+          <h3>Today's Overview</h3>
+          <div class="progress-ring">
+            <svg viewBox="0 0 100 100">
+              <circle class="background" cx="50" cy="50" r="45" />
+              <circle class="progress" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="283" />
+            </svg>
+            <div class="progress-text">0%</div>
+          </div>
+          <p id="completionText">Daily Completion: 0%</p>
+          <div class="performance-summary" id="performanceSummary">
+            <!-- Performance Summary will update here -->
+          </div>
+        </div>
+        <div class="activity-card">
+          <h3>Quick Actions</h3>
+          <button class="action-btn" onclick="addManualTask()">
+            <i class="fas fa-plus"></i> Add Task
+          </button>
+          <button class="action-btn" onclick="showToast('Study Session started!', 3000)">
+            <i class="fas fa-book"></i> Study Session
+          </button>
+          <button class="action-btn" onclick="setReminderSettings()">
+            <i class="fas fa-bell"></i> Reminder Settings
+          </button>
+          <button class="action-btn" onclick="startPomodoro()">
+            <i class="fas fa-hourglass-start"></i> Start Pomodoro
+          </button>
+          <div id="pomodoro-timer" style="margin-top:10px; font-weight:bold;"></div>
+        </div>
+      </div>
+      <!-- Main Schedule, Study Guide, Evening Plan, Manual Tasks -->
+      <div class="schedule-container">
+        <div class="day-selector-container">
+          <select id="day-selector" onchange="onDayChange(this.value)">
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+          </select>
+        </div>
+        <!-- Morning Plan Section -->
+        <div class="morning-plan" id="morning-plan">
+          <!-- Morning plan will be dynamically rendered here -->
+        </div>
+        <div class="schedule-view" id="schedule">
+          <!-- Schedule will be dynamically rendered here -->
+        </div>
+        <div class="study-guide" id="study-guide">
+          <!-- Study guide content will appear here -->
+        </div>
+        <div class="evening-plan" id="evening-plan">
+          <!-- Evening plan will be dynamically rendered here -->
+        </div>
+        <div class="manual-tasks" id="manual-tasks">
+          <h3>Manual Tasks</h3>
+          <ul id="manualTaskList"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="floating-add" onclick="addManualTask()">
+      <i class="fas fa-plus" style="color: white; font-size: 1.5rem;"></i>
+    </div>
+  </div>
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+  <script>
+    /* ================================
+       Timetable Data (Academic)
+       ================================ */
+    const timetable = {
+      Monday: [
+        { time: "10:15 am - 11:15 am", activity: "IMP(P) NB 2110", type: "practical" },
+        { time: "1:15 pm - 2:15 pm", activity: "LDP(L) JK 2216", type: "lecture" },
+        { time: "2:15 pm - 3:15 pm", activity: "LAS(L) JVT 2216", type: "lecture" }
+      ],
+      Tuesday: [
+        { time: "9:00 am - 10:00 am", activity: "LAS(T) JVT 2114", type: "tutorial" },
+        { time: "10:15 am - 11:15 am", activity: "PA(P) PS 2011C", type: "practical" },
+        { time: "1:15 pm - 2:15 pm", activity: "IMP(L) SSC 2216", type: "lecture" },
+        { time: "2:15 pm - 3:15 pm", activity: "LAS(L) JVT 2216", type: "lecture" },
+        { time: "3:30 pm - 4:30 pm", activity: "CC(T) KS 2216", type: "tutorial" }
+      ],
+      Wednesday: [
+        { time: "10:15 am - 11:15 am", activity: "TSDL(P) VM 2011C", type: "practical" },
+        { time: "11:15 am - 12:15 pm", activity: "TSDL(P) VM 2011C", type: "practical" },
+        { time: "1:15 pm - 2:15 pm", activity: "CC(L) KS 2216", type: "lecture" },
+        { time: "2:15 pm - 3:15 pm", activity: "PA(L) MMR 2216", type: "lecture" },
+        { time: "3:30 pm - 4:30 pm", activity: "Capstone Project(P)", type: "project" }
+      ],
+      Thursday: [
+        { time: "10:15 am - 11:15 am", activity: "Capstone Project(P)", type: "project" },
+        { time: "2:15 pm - 3:15 pm", activity: "PA(L) MMR 2216", type: "lecture" },
+        { time: "3:30 pm - 4:30 pm", activity: "LDP(P) AB 2314", type: "practical" }
+      ],
+      Friday: [
+        { time: "8:00 am - 10:00 am", activity: "PE(L) QJ 2001A", type: "lecture" },
+        { time: "10:15 am - 11:15 am", activity: "LAS(L) JVT 2216", type: "lecture" },
+        { time: "11:15 am - 12:15 pm", activity: "PA(L) MMR 2216", type: "lecture" },
+        { time: "12:15 pm - 1:15 pm", activity: "Lunch Break", type: "break" },
+        { time: "1:15 pm - 2:15 pm", activity: "LDP(L) JK 2216", type: "lecture" }
+      ],
+      Saturday: [
+        { time: "8:00 am - 9:00 am", activity: "Linear Algebra & Statistics", type: "study" },
+        { time: "9:10 am - 10:10 am", activity: "Logic Development & Programming", type: "study" },
+        { time: "10:20 am - 11:20 am", activity: "Corporate Communication", type: "study" },
+        { time: "11:30 am - 12:30 pm", activity: "Prompt Engineering", type: "study" },
+        { time: "1:30 pm - 2:30 pm", activity: "Microcontroller Programming", type: "study" },
+        { time: "2:40 pm - 3:40 pm", activity: "Technical Skill Development Lab", type: "study" },
+        { time: "4:00 pm - 5:00 pm", activity: "Capstone Project Work", type: "project" },
+        { time: "5:10 pm - 6:10 pm", activity: "Revision", type: "study" }
+      ],
+      Sunday: [
+        { time: "8:00 am - 9:00 am", activity: "Linear Algebra & Statistics", type: "study" },
+        { time: "9:10 am - 10:10 am", activity: "Logic Development & Programming", type: "study" },
+        { time: "10:20 am - 11:20 am", activity: "Corporate Communication", type: "study" },
+        { time: "11:30 am - 12:30 pm", activity: "Prompt Engineering", type: "study" },
+        { time: "1:30 pm - 2:30 pm", activity: "Microcontroller Programming", type: "study" },
+        { time: "2:40 pm - 3:40 pm", activity: "Technical Skill Development Lab", type: "study" },
+        { time: "4:00 pm - 5:00 pm", activity: "Capstone Project Work", type: "project" },
+        { time: "5:10 pm - 6:10 pm", activity: "Revision", type: "study" }
+      ]
+    };
+
+    /* Morning Plan Data */
+    const morningPlanWeekday = [
+      { time: "6:30 am - 7:00 am", task: "Wake Up" },
+      { time: "7:00 am - 7:30 am", task: "Breakfast & Prepare" },
+      { time: "7:30 am - 8:00 am", task: "Commute to School" }
+    ];
+    const morningPlanWeekend = [
+      { time: "8:00 am - 8:30 am", task: "Wake Up" },
+      { time: "8:30 am - 9:00 am", task: "Breakfast & Leisure" }
+    ];
+
+    /* Manual Tasks Storage Key */
+    const MANUAL_TASKS_KEY = 'manualTasks';
+
+    /* =============== 
+       Manual Tasks 
+       =============== */
+    function loadManualTasks() {
+      return JSON.parse(localStorage.getItem(MANUAL_TASKS_KEY)) || [];
+    }
+    function saveManualTasks(tasks) {
+      localStorage.setItem(MANUAL_TASKS_KEY, JSON.stringify(tasks));
+    }
+    function renderManualTasks() {
+      const manualTaskList = document.getElementById('manualTaskList');
+      manualTaskList.innerHTML = '';
+      const tasks = loadManualTasks();
+      tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.style.cursor = 'pointer';
+        li.innerHTML = `${task.text} (${task.time}) - <em>${task.priority}</em> ${task.deadline ? '- Deadline: ' + task.deadline : ''}`;
+        if (task.completed) {
+          li.classList.add('completed-task');
+        }
+        li.onclick = () => {
+          task.completed = !task.completed;
+          saveManualTasks(tasks);
+          renderManualTasks();
+          updateProgress(currentDay);
+        };
+        manualTaskList.appendChild(li);
+      });
+    }
+    function addManualTask() {
+      const taskText = prompt('Enter your manual task:');
+      if (taskText) {
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const priority = prompt('Enter priority (High, Medium, Low):', 'Medium');
+        const deadline = prompt('Enter deadline time (HH:MM, optional):', '');
+        const tasks = loadManualTasks();
+        tasks.push({ text: taskText, time: time, priority: priority || 'Medium', deadline: deadline || '', completed: false });
+        saveManualTasks(tasks);
+        renderManualTasks();
+        updateProgress(currentDay);
+        showToast(`Task "${taskText}" added.`);
+      }
+    }
+
+    /* ===============
+       Morning Plan
+       =============== */
+    function renderMorningPlan(day) {
+      const morningPlanDiv = document.getElementById("morning-plan");
+      let plan = (['Saturday', 'Sunday'].includes(day)) ? morningPlanWeekend : morningPlanWeekday;
+      let html = `<h3>Morning Plan</h3><ul>`;
+      plan.forEach(item => {
+        html += `<li><strong>${item.time}</strong>: ${item.task}</li>`;
+      });
+      html += `</ul>`;
+      morningPlanDiv.innerHTML = html;
+    }
+
+    /* ===============
+       Main Schedule
+       =============== */
+    let currentDay = 'Monday'; // global
+    function renderSchedule(day) {
+      currentDay = day;
+      const scheduleDiv = document.getElementById("schedule");
+      scheduleDiv.innerHTML = "";
+      const dailySchedule = timetable[day] || [];
+      dailySchedule.forEach((activity, index) => {
+        const slot = document.createElement("div");
+        slot.className = `time-slot ${activity.type}`;
+        slot.innerHTML = `
+          <span class="time-indicator">${activity.time}</span>
+          <div class="activity-content">
+            <h4>${activity.activity}</h4>
+            <p>${
+              activity.type === "lecture"
+                ? "Class"
+                : activity.type === "study"
+                ? "Study"
+                : activity.type === "tutorial"
+                ? "Tutorial"
+                : activity.type === "practical"
+                ? "Practical Lab"
+                : activity.type === "project"
+                ? "Project"
+                : activity.type === "break"
+                ? "Break"
+                : "Personal"
+            }</p>
+          </div>
+        `;
+        if (activity.type === "lecture" || activity.type === "tutorial" || activity.type === "practical" || activity.type === "project") {
+          slot.style.cursor = 'pointer';
+          slot.onclick = () => {
+            slot.classList.toggle("completed-task");
+            localStorage.setItem(`schedule-${day}-${index}`, slot.classList.contains("completed-task") ? "completed" : "pending");
+            updateProgress(day);
+          };
+          if (localStorage.getItem(`schedule-${day}-${index}`) === "completed") {
+            slot.classList.add("completed-task");
+          }
+        }
+        scheduleDiv.appendChild(slot);
+      });
+      checkScheduleTime(day);
+    }
+
+    /* ===============
+       Evening Plan
+       =============== */
+    function renderEveningPlan(day) {
+      const eveningPlanDiv = document.getElementById("evening-plan");
+      let plan;
+      if (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(day)) {
+        plan = [
+          { time: "8:30 pm - 9:30 pm", task: "Revision / Self-Study" },
+          { time: "9:30 pm - 10:15 pm", task: "Assignment / Project Work" },
+          { time: "10:15 pm - 10:45 pm", task: "Leisure / Break" },
+          { time: "10:45 pm - 11:00 pm", task: "Wind Down & Prepare for Sleep" }
+        ];
+      } else {
+        plan = [
+          { time: "8:30 pm - 9:30 pm", task: "Revision / Self-Study" },
+          { time: "9:30 pm - 10:30 pm", task: "Assignment / Project Work" },
+          { time: "10:30 pm - 11:30 pm", task: "Leisure / Break" },
+          { time: "11:30 pm - 12:00 am", task: "Wind Down & Prepare for Sleep" }
+        ];
+      }
+      let html = `<h3>Evening Plan</h3><ul>`;
+      plan.forEach(item => {
+        html += `<li><strong>${item.time}</strong>: ${item.task}</li>`;
+      });
+      html += `</ul>`;
+      eveningPlanDiv.innerHTML = html;
+    }
+
+    /* ===============
+       Study Guide
+       =============== */
+    function updateStudyGuide(day) {
+      const studyGuideDiv = document.getElementById("study-guide");
+      let guideMessage = "";
+      if (day === "Saturday" || day === "Sunday") {
+        guideMessage = `
+          <h3>Weekend Study Plan</h3>
+          <p>Use this time to revise the week's material, work on assignments, and prepare for upcoming challenges. Take breaks and recharge!</p>
+        `;
+      } else {
+        guideMessage = `
+          <h3>Today's Study Guide</h3>
+          <p>Focus on your lectures, attend tutorials, and review your notes during breaks. Your practical labs for F3 are set accordingly—plan your study sessions around them!</p>
+        `;
+      }
+      studyGuideDiv.innerHTML = guideMessage;
+    }
+
+    /* ===============
+       Performance Summary
+       =============== */
+    function updatePerformanceSummary(day) {
+      const dailySchedule = timetable[day] || [];
+      const manualTasks = loadManualTasks();
+      const totalAcademic = dailySchedule.length;
+      const totalManual = manualTasks.length;
+      const completedAcademic = dailySchedule.reduce((acc, activity, index) =>
+        acc + (localStorage.getItem(`schedule-${day}-${index}`) === "completed" ? 1 : 0), 0
+      );
+      const completedManual = manualTasks.filter(task => task.completed).length;
+      const totalTasks = totalAcademic + totalManual;
+      const completedTasks = completedAcademic + completedManual;
+      const summaryDiv = document.getElementById('performanceSummary');
+      summaryDiv.innerHTML = `<p>Completed ${completedTasks} out of ${totalTasks} tasks.</p>`;
+    }
+
+    /* ===============
+       Progress Ring
+       =============== */
+    function updateProgress(day) {
+      const dailySchedule = timetable[day] || [];
+      let completedAcademic = 0;
+      dailySchedule.forEach((activity, index) => {
+        if (localStorage.getItem(`schedule-${day}-${index}`) === "completed") {
+          completedAcademic++;
+        }
+      });
+      const manualTasks = loadManualTasks();
+      const totalManual = manualTasks.length;
+      const completedManual = manualTasks.filter(task => task.completed).length;
+      const totalAcademic = dailySchedule.length;
+      const totalTasks = totalAcademic + totalManual;
+      const completedTasks = completedAcademic + completedManual;
+      const progressPercent = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+      const progressCircle = document.querySelector(".progress-ring .progress");
+      const radius = progressCircle.r.baseVal.value;
+      const circumference = radius * 2 * Math.PI;
+      progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+      const offset = circumference - (progressPercent / 100) * circumference;
+      progressCircle.style.strokeDashoffset = offset;
+
+      const progressText = document.querySelector(".progress-text");
+      if (progressText) progressText.innerText = progressPercent + "%";
+      document.getElementById("completionText").innerText = `Daily Completion: ${progressPercent}%`;
+
+      updatePerformanceSummary(day);
+    }
+
+    /* ===============
+       Notifications
+       =============== */
+    function checkScheduleTime(day) {
+      const now = new Date();
+      const currentTime = formatTime(now);
+      const dailySchedule = timetable[day] || [];
+      const customReminder = localStorage.getItem('customReminder');
+      dailySchedule.forEach(activity => {
+        let startTime = activity.time.split(" - ")[0].trim().toLowerCase();
+        if (startTime === currentTime) {
+          showToast(`It's time for ${activity.activity} (${activity.type}). ${customReminder || ''}`);
+        }
+      });
+    }
+
+    function checkMorningPlanTime() {
+      const now = new Date();
+      const currentTime = formatTime(now);
+      const morningPlan = (['Saturday', 'Sunday'].includes(currentDay)) ? morningPlanWeekend : morningPlanWeekday;
+      morningPlan.forEach((item, index) => {
+        const [start, end] = item.time.split(" - ").map(t => t.trim().toLowerCase());
+        if (start === currentTime) {
+          showToast(`Time to start ${item.task}.`);
+        } else if (end === currentTime) {
+          const nextItem = morningPlan[index + 1];
+          const nextMsg = nextItem ? ` Next is ${nextItem.task}.` : " That was your last morning task!";
+          showToast(`You have ended ${item.task}.${nextMsg}`);
+        }
+      });
+    }
+
+    function checkEveningPlanTime() {
+      const now = new Date();
+      const currentTime = formatTime(now);
+      const eveningPlan = (['Saturday', 'Sunday'].includes(currentDay)) ? [
+        { time: "8:30 pm - 9:30 pm", task: "Revision / Self-Study" },
+        { time: "9:30 pm - 10:30 pm", task: "Assignment / Project Work" },
+        { time: "10:30 pm - 11:30 pm", task: "Leisure / Break" },
+        { time: "11:30 pm - 12:00 am", task: "Wind Down & Prepare for Sleep" }
+      ] : [
+        { time: "8:30 pm - 9:30 pm", task: "Revision / Self-Study" },
+        { time: "9:30 pm - 10:15 pm", task: "Assignment / Project Work" },
+        { time: "10:15 pm - 10:45 pm", task: "Leisure / Break" },
+        { time: "10:45 pm - 11:00 pm", task: "Wind Down & Prepare for Sleep" }
+      ];
+      eveningPlan.forEach((item, index) => {
+        const [start, end] = item.time.split(" - ").map(t => t.trim().toLowerCase());
+        if (start === currentTime) {
+          showToast(`Time to start ${item.task}.`);
+        } else if (end === currentTime) {
+          const nextItem = eveningPlan[index + 1];
+          const nextMsg = nextItem ? ` Next is ${nextItem.task}.` : " That was your last evening task!";
+          showToast(`You have ended ${item.task}.${nextMsg}`);
+        }
+      });
+    }
+
+    function checkAllTimes() {
+      checkScheduleTime(currentDay);
+      checkMorningPlanTime();
+      checkEveningPlanTime();
+    }
+
+    function formatTime(dateObj) {
+      return dateObj.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }).toLowerCase();
+    }
+
+    /* ===============
+       On Day Change
+       =============== */
+    function onDayChange(day) {
+      renderMorningPlan(day);
+      renderSchedule(day);
+      updateStudyGuide(day);
+      renderEveningPlan(day);
+      updateProgress(day);
+      renderManualTasks();
+      showToast(`Schedule for ${day} loaded.`, 2500);
+    }
+
+    /* ===============
+       Toast
+       =============== */
+    function showToast(message, duration = 3000) {
+      const toastContainer = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = "fadeOutToast 0.5s forwards";
+        setTimeout(() => { toast.remove(); }, 500);
+      }, duration);
+    }
+
+    /* ===============
+       Pomodoro Timer
+       =============== */
+    let pomodoroInterval;
+    function startPomodoro() {
+      const timerDiv = document.getElementById('pomodoro-timer');
+      let workTime = 25 * 60; // 25 minutes in seconds
+      clearInterval(pomodoroInterval);
+      pomodoroInterval = setInterval(() => {
+        if (workTime > 0) {
+          workTime--;
+          timerDiv.innerText = `Work: ${Math.floor(workTime / 60)}:${(workTime % 60).toString().padStart(2, '0')}`;
+        } else {
+          clearInterval(pomodoroInterval);
+          showToast('Pomodoro complete! Time for a 5-minute break.');
+          startBreak();
+        }
+      }, 1000);
+    }
+    function startBreak() {
+      const timerDiv = document.getElementById('pomodoro-timer');
+      let breakTime = 5 * 60; // 5 minutes
+      pomodoroInterval = setInterval(() => {
+        if (breakTime > 0) {
+          breakTime--;
+          timerDiv.innerText = `Break: ${Math.floor(breakTime / 60)}:${(breakTime % 60).toString().padStart(2, '0')}`;
+        } else {
+          clearInterval(pomodoroInterval);
+          showToast('Break over! Back to work.');
+          timerDiv.innerText = '';
+        }
+      }, 1000);
+    }
+
+    /* ===============
+       Reminder Settings
+       =============== */
+    function setReminderSettings() {
+      const customReminder = prompt('Enter a custom reminder message (this will be appended to academic reminders):');
+      if (customReminder !== null) {
+        localStorage.setItem('customReminder', customReminder);
+        showToast('Custom reminder updated.');
+      }
+    }
+
+    /* ===============
+       On Page Load
+       =============== */
+    document.addEventListener("DOMContentLoaded", () => {
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const today = days[new Date().getDay()];
+      document.getElementById("day-selector").value = today;
+      onDayChange(today);
+      showToast("Welcome to Chronosync! Use the day selector to view your schedule.", 4000);
+      setInterval(checkAllTimes, 60000);
+    });
+
+    // Initialize progress ring
+    const progressRing = document.querySelector(".progress-ring .progress");
+    if (progressRing) {
+      const radius = progressRing.r.baseVal.value;
+      const circumference = radius * 2 * Math.PI;
+      progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+      progressRing.style.strokeDashoffset = circumference;
+    }
+  </script>
+</body>
+</html>
